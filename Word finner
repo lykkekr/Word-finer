@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<title>Rime-Appen</title>
+<style>
+ body {
+   margin: 0;
+   padding: 0;
+   background: #7c4dff; /* lilla */
+   font-family: Arial, sans-serif;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   color: white;
+ }
+
+ .container {
+   width: 80%;
+   max-width: 600px;
+   margin-top: 60px;
+ }
+
+ .mode-buttons {
+   display: flex;
+   gap: 10px;
+   margin-bottom: 20px;
+ }
+
+ button {
+   flex: 1;
+   padding: 10px;
+   border: none;
+   cursor: pointer;
+   border-radius: 6px;
+   background: #4a2fb4;
+   color: white;
+   font-size: 15px;
+ }
+
+ button.active {
+   background: #b39ddb;
+ }
+
+ input {
+   width: 100%;
+   padding: 12px;
+   border: none;
+   border-radius: 6px;
+   font-size: 16px;
+   margin-bottom: 15px;
+ }
+
+ #results {
+   margin-top: 20px;
+   font-size: 16px;
+ }
+
+ .result-item {
+   margin-bottom: 6px;
+ }
+</style>
+</head>
+<body>
+
+<div class="container">
+ <div class="mode-buttons">
+   <button id="btnSimilar" class="active">Nesten rimer</button>
+   <button id="btnRhyme">Rimer</button>
+ </div>
+
+ <input id="search" placeholder="Skriv et ord her...">
+ 
+ <button id="searchBtn">Søk</button>
+ 
+ <div id="results"></div>
+</div>
+
+<script>
+ let mode = "similar";
+
+ const btnSimilar = document.getElementById("btnSimilar");
+ const btnRhyme = document.getElementById("btnRhyme");
+ const searchBtn = document.getElementById("searchBtn");
+ const search = document.getElementById("search");
+ const results = document.getElementById("results");
+
+ btnSimilar.onclick = () => {
+   mode = "similar";
+   btnSimilar.classList.add("active");
+   btnRhyme.classList.remove("active");
+ };
+
+ btnRhyme.onclick = () => {
+   mode = "rhyme";
+   btnRhyme.classList.add("active");
+   btnSimilar.classList.remove("active");
+ };
+
+ searchBtn.onclick = () => runAI(search.value);
+ search.onkeydown = (e) => {
+   if (e.key === "Enter") runAI(search.value);
+ };
+
+ function runAI(word) {
+   if (!word.trim()) return;
+
+   // Super-fake AI placeholder (dev later)
+   let generated = [];
+
+   if (mode === "similar") {
+     generated = ["ord1", "ord2", "ord3", "ord4"];
+   } else {
+     generated = ["rim1", "rim2", "rim3", "rim4"];
+   }
+
+   results.innerHTML = generated.map(g => `<div class="result-item">${g}</div>`).join("");
+ }
+</script>
+</body>
+</html>
