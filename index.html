@@ -1,121 +1,111 @@
-<!DOCTYPE html>
-<html lang="no">
-<head>
-<meta charset="UTF-8">
-<title>Rime-Appen</title>
-<style>
- body {
-   margin: 0;
-   padding: 0;
-   background: #7c4dff; /* lilla */
-   font-family: Arial, sans-serif;
-   display: flex;
-   flex-direction: column;
-   align-items: center;
-   color: white;
- }
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
- .container {
-   width: 80%;
-   max-width: 600px;
-   margin-top: 60px;
- }
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
- .mode-buttons {
-   display: flex;
-   gap: 10px;
-   margin-bottom: 20px;
- }
+let balls = [];
+let startTime = Date.now();
 
- button {
-   flex: 1;
-   padding: 10px;
-   border: none;
-   cursor: pointer;
-   border-radius: 6px;
-   background: #4a2fb4;
-   color: white;
-   font-size: 15px;
- }
+let unlockedColors = ["red"];
+const allColors = ["red", "blue", "green", "yellow", "purple", "cyan", "orange", "pink"];
 
- button.active {
-   background: #b39ddb;
- }
+class Ball {
+    constructor(x, y, color) {
+        this.radius = 10;
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 4;
+        this.vy = (Math.random() - 0.5) * 4;
+        this.color = color;
+    }
 
- input {
-   width: 100%;
-   padding: 12px;
-   border: none;
-   border-radius: 6px;
-   font-size: 16px;
-   margin-bottom: 15px;
- }
+    move() {
+        this.x += this.vx;
+        this.y += this.vy;
 
- #results {
-   margin-top: 20px;
-   font-size: 16px;
- }
+        if (this.x <= this.radius || this.x >= canvas.width - this.radius) {
+            this.vx *= -1;
+            spawnBall();
+        }
 
- .result-item {
-   margin-bottom: 6px;
- }
-</style>
-</head>
-<body>
+        if (this.y <= this.radius || this.y >= canvas.height - this.radius) {
+            this.vy *= -1;
+            spawnBall();
+        }
+    }
 
-<div class="container">
- <div class="mode-buttons">
-   <button id="btnSimilar" class="active">Nesten rimer</button>
-   <button id="btnRhyme">Rimer</button>
- </div>
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+    }
+}
 
- <input id="search" placeholder="Skriv et ord her...">
- 
- <button id="searchBtn">Søk</button>
- 
- <div id="results"></div>
-</div>
+function spawnBall() {
+    const color = unlockedColors[Math.floor(Math.random() * unlockedColors.length)];
+    balls.push(new Ball(
+        Math.random() * canvas.width,
+        Math.random() * canvas.height,
+        color
+    ));
 
-<script>
- let mode = "similar";
+    if (balls.length % 50 === 0 && unlockedColors.length < allColors.length) {
+        unlockedColors.push(allColors[unlockedColors.length]);
+    }
+}
 
- const btnSimilar = document.getElementById("btnSimilar");
- const btnRhyme = document.getElementById("btnRhyme");
- const searchBtn = document.getElementById("searchBtn");
- const search = document.getElementById("search");
- const results = document.getElementById("results");
+function checkCollisions() {
+    for (let i = 0; i < balls.length; i++) {
+        for (let j = i + 1; j < balls.length; j++) {
+            const dx = balls[i].x - balls[j].x;
+            const dy = balls[i].y - balls[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
 
- btnSimilar.onclick = () => {
-   mode = "similar";
-   btnSimilar.classList.add("active");
-   btnRhyme.classList.remove("active");
- };
+            if (dist < balls[i].radius + balls[j].radius) {
+                balls[i].vx *= -1;
+                balls[i].vy *= -1;
+                balls[j].vx *= -1;
+                balls[j].vy *= -1;
+                spawnBall();
+            }
+        }
+    }
+}
 
- btnRhyme.onclick = () => {
-   mode = "rhyme";
-   btnRhyme.classList.add("active");
-   btnSimilar.classList.remove("active");
- };
+function updateTimer() {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const h = String(Math.floor(elapsed / 3600)).padStart(2, "0");
+    const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2, "0");
+    const s = String(elapsed % 60).padStart(2, "0");
+    document.getElementById("timer").textContent = `${h}:${m}:${s}`;
+}
 
- searchBtn.onclick = () => runAI(search.value);
- search.onkeydown = (e) => {
-   if (e.key === "Enter") runAI(search.value);
- };
+function updateBallCount() {
+    document.getElementById("ballCount").textContent = `Baller: ${balls.length}`;
+}
 
- function runAI(word) {
-   if (!word.trim()) return;
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-   // Super-fake AI placeholder (dev later)
-   let generated = [];
+    balls.forEach(ball => {
+        ball.move();
+        ball.draw();
+    });
 
-   if (mode === "similar") {
-     generated = ["ord1", "ord2", "ord3", "ord4"];
-   } else {
-     generated = ["rim1", "rim2", "rim3", "rim4"];
-   }
+    checkCollisions();
+    updateTimer();
+    updateBallCount();
 
-   results.innerHTML = generated.map(g => `<div class="result-item">${g}</div>`).join("");
- }
-</script>
-</body>
-</html>
+    requestAnimationFrame(animate);
+}
+
+// Start med én ball
+balls.push(new Ball(canvas.width / 2, canvas.height / 2, "red"));
+animate();
+
+window.addEventListener("resize", () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+});
